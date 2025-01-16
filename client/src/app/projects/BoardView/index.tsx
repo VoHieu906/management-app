@@ -12,6 +12,7 @@ import { Task as TaskType } from "@/state/api";
 import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+
 type BoardProps = {
   id: string;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
@@ -65,6 +66,7 @@ const TaskColumn = ({
     }),
   }));
   const taskCount = tasks.filter((task) => task.status === status).length;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const statusColor: any = {
     "To Do": "#2563EB",
     "Work In Progress": "#059669",
