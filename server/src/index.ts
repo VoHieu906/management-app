@@ -8,6 +8,7 @@ import projectRoutes from "./routes/projectRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import searchRoutes from "./routes/searchRoutes";
 import userRoutes from "./routes/userRoute";
+import teamRoutes from "./routes/teamRoutes";
 // ROUTE IMPORT
 
 // CONFIGURATIONS
@@ -29,6 +30,7 @@ app.use("/projects", projectRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/search", searchRoutes);
 app.use("/users", userRoutes);
+app.use("/teams", teamRoutes);
 
 //SERVE
 const port = process.env.PORT || 3000;
