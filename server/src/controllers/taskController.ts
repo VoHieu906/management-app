@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 export const getTasks = async (req: Request, res: Response): Promise<void> => {
@@ -41,6 +41,13 @@ export const createTask = async (
     authorUserId,
     assignedUserId,
   } = req.body;
+
+  // Validate required fields
+  if (!title || !projectId || !authorUserId) {
+    res.status(400).json({ message: "Missing required fields" });
+    return; // Ensure the function ends after sending the response
+  }
+
   try {
     const newTask = await prisma.task.create({
       data: {
@@ -57,9 +64,18 @@ export const createTask = async (
         assignedUserId,
       },
     });
+
     res.status(201).json(newTask);
   } catch (error: any) {
-    res.status(500).json({ message: `Error creating task ${error.message}` });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Handle known Prisma errors
+      res.status(400).json({ message: `Database error: ${error.message}` });
+    } else {
+      // Handle general errors
+      res
+        .status(500)
+        .json({ message: `Error creating task: ${error.message}` });
+    }
   }
 };
 

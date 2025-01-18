@@ -69,10 +69,14 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      const session = await fetchAuthSession();
-      const { accessToken } = session.tokens ?? {};
-      if (accessToken) {
-        headers.set("Authorization", `Bearer ${accessToken}`);
+      try {
+        const session = await fetchAuthSession();
+        const { accessToken } = session.tokens ?? {};
+        if (accessToken) {
+          headers.set("Authorization", `Bearer ${accessToken}`);
+        }
+      } catch (error) {
+        console.error("Error fetching session:", error);
       }
       return headers;
     },
@@ -85,18 +89,27 @@ export const api = createApi({
         try {
           const user = await getCurrentUser();
           const session = await fetchAuthSession();
-          if (!session) throw new Error("No session found");
+          if (!session) {
+            return { error: { status: 401, data: "No session found" } };
+          }
           const { userSub } = session;
-          // const { accessToken } = session.tokens ?? {};
           const userDetailsResponse = await fetchWithBQ(`users/${userSub}`);
+          if (userDetailsResponse.error) {
+            return { error: userDetailsResponse.error };
+          }
           const userDetails = userDetailsResponse.data as User;
           return { data: { user, userSub, userDetails } };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-          return { error: error.message || "Could not fetch user data" };
+        } catch (error: unknown) {
+          return {
+            error: {
+              status: 500,
+              data: error instanceof Error ? error.message : "Unexpected error",
+            },
+          };
         }
       },
     }),
+
     getProjects: build.query<Project[], void>({
       query: () => "projects",
       providesTags: ["Projects"],
@@ -154,6 +167,7 @@ export const api = createApi({
     }),
   }),
 });
+
 export const {
   useGetProjectsQuery,
   useCreateProjectMutation,

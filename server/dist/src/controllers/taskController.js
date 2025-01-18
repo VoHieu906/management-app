@@ -37,6 +37,11 @@ const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.getTasks = getTasks;
 const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { title, description, status, priority, tags, startDate, dueDate, points, projectId, authorUserId, assignedUserId, } = req.body;
+    // Validate required fields
+    if (!title || !projectId || !authorUserId) {
+        res.status(400).json({ message: "Missing required fields" });
+        return; // Ensure the function ends after sending the response
+    }
     try {
         const newTask = yield prisma.task.create({
             data: {
@@ -56,7 +61,16 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(201).json(newTask);
     }
     catch (error) {
-        res.status(500).json({ message: `Error creating task ${error.message}` });
+        if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
+            // Handle known Prisma errors
+            res.status(400).json({ message: `Database error: ${error.message}` });
+        }
+        else {
+            // Handle general errors
+            res
+                .status(500)
+                .json({ message: `Error creating task: ${error.message}` });
+        }
     }
 });
 exports.createTask = createTask;
