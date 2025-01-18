@@ -86,7 +86,6 @@ const ReusablePriorityPage = ({ priority }: Props) => {
     skip: userId === null,
   });
 
-  console.log(tasks);
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   const filteredTasks = tasks?.filter(
@@ -94,11 +93,19 @@ const ReusablePriorityPage = ({ priority }: Props) => {
   );
 
   if (isTasksError)
-    return <div>Error fetching tasks. Please try again later.</div>;
-  if (isLoading) return <div>Loading tasks...</div>;
+    return (
+      <div className="dark:text-white">
+        Error fetching tasks. Please try again later.
+      </div>
+    );
+  if (isLoading) return <div className="dark:text-white">Loading tasks...</div>;
 
   if (!tasks || filteredTasks?.length === 0) {
-    return <div>No tasks available for this priority.</div>;
+    return (
+      <div className="dark:text-white">
+        No tasks available for this priority.
+      </div>
+    );
   }
 
   return (
