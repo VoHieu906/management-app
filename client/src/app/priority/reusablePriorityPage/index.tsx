@@ -62,7 +62,7 @@ const columns: GridColDef[] = [
     field: "author",
     headerName: "Author",
     width: 150,
-    renderCell: (params) => params.value.username || "Unknow",
+    renderCell: (params) => params.value.username || "Unknown",
   },
   {
     field: "assignee",
@@ -71,11 +71,13 @@ const columns: GridColDef[] = [
     renderCell: (params) => params.value.username || "Unassigned",
   },
 ];
+
 const ReusablePriorityPage = ({ priority }: Props) => {
   const [view, setView] = useState("list");
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
   const { data: currentUser } = useGetAuthUserQuery({});
   const userId = currentUser?.userDetails?.userId ?? null;
+
   const {
     data: tasks,
     isLoading,
@@ -83,11 +85,21 @@ const ReusablePriorityPage = ({ priority }: Props) => {
   } = useGetTasksByUserQuery(userId || 0, {
     skip: userId === null,
   });
+
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+
   const filteredTasks = tasks?.filter(
     (task: Task) => task.priority === priority,
   );
-  if (isTasksError || !tasks) return <div>Error fetching tasks</div>;
+
+  if (isTasksError)
+    return <div>Error fetching tasks. Please try again later.</div>;
+  if (isLoading) return <div>Loading tasks...</div>;
+
+  if (!tasks || filteredTasks?.length === 0) {
+    return <div>No tasks available for this priority.</div>;
+  }
+
   return (
     <div className="m-5 p-4">
       <ModalNewTask
@@ -119,28 +131,23 @@ const ReusablePriorityPage = ({ priority }: Props) => {
           Table
         </button>
       </div>
-      {isLoading ? (
-        <div>Loading tasks...</div>
-      ) : view === "list" ? (
+      {view === "list" ? (
         <div className="grid grid-cols-1 gap-4">
           {filteredTasks?.map((task: Task) => (
             <TaskCard key={task.id} task={task} />
           ))}
         </div>
       ) : (
-        view === "table" &&
-        filteredTasks && (
-          <div>
-            <div className="w-full">
-              <DataGrid
-                rows={filteredTasks}
-                columns={columns}
-                checkboxSelection
-                getRowId={(row) => row.id}
-                className={dataGridClassNames}
-                sx={dataGridSxStyles(isDarkMode)}
-              />
-            </div>
+        view === "table" && (
+          <div className="w-full">
+            <DataGrid
+              rows={filteredTasks}
+              columns={columns}
+              checkboxSelection
+              getRowId={(row) => row.id}
+              className={dataGridClassNames}
+              sx={dataGridSxStyles(isDarkMode)}
+            />
           </div>
         )
       )}
